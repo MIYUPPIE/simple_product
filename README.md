@@ -151,17 +151,6 @@ The API is implemented in `products/views.py` using Django REST Framework's `Mod
 python manage.py test
 ```
 
-### Code Coverage
-```bash
-coverage run manage.py test
-coverage report
-```
-
-### Linting
-```bash
-flake8
-```
-
 ## CI/CD
 
 The project uses GitHub Actions for:
@@ -199,23 +188,7 @@ business-api/
 ├── .env               # Environment variables
 ├── .env.example       # Environment template
 └── manage.py          # Django management
-```
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-### Coding Standards
-
-- Follow PEP 8 guidelines
-- Include docstrings for all functions
-- Write unit tests for new features
-- Maintain consistent error handling
-- Update documentation for API changes
 
 ## License
 
