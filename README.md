@@ -2,26 +2,34 @@
 
 A Django REST API for managing product inventory with comprehensive error handling and standardized response formats.
 
+Live Demo: [https://simpleproduct-production.up.railway.app](https://simpleproduct-production.up.railway.app)
+GitHub Repository: [https://github.com/MIYUPPIE/simple_product](https://github.com/MIYUPPIE/simple_product)
+
 ## Features
 
 - RESTful API endpoints for product management
 - UUID-based product identification
 - Standardized API response format
-- Rate limiting and pagination
+- Rate limiting (100 requests/minute per anonymous user)
 - CORS support
 - Comprehensive error handling
 - CI/CD pipeline with GitHub Actions
+- Gunicorn production server with worker management
 
 ## Tech Stack
 
-- Python 3.9+
+- Python 3.12
 - Django 5.1.7
 - Django REST Framework 3.14.0
 - SQLite (default database)
+- Gunicorn 23.0.0
+- django-cors-headers 4.3.1
+- python-dotenv 1.0.1
+- whitenoise 6.9.0
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.12 or higher
 - pip (Python package manager)
 - Git
 
@@ -48,7 +56,11 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 ```
-Edit `.env` file with your configuration.
+
+Required environment variables:
+- DJANGO_SECRET_KEY: Your Django secret key
+- DJANGO_DEBUG: Set to False in production
+
 
 5. Run migrations:
 ```bash
@@ -58,6 +70,11 @@ python manage.py migrate
 6. Start the development server:
 ```bash
 python manage.py runserver
+```
+
+For production deployment:
+```bash
+gunicorn business_api.wsgi:application --workers 2
 ```
 
 ## API Documentation
@@ -119,30 +136,14 @@ python manage.py runserver
 }
 ```
 
-#### Rate Limiting Headers
+#### Rate Limiting
+- Anonymous users: 100 requests per minute
+- Rate limit headers included in responses:
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 99
 X-RateLimit-Reset: 1668144600
 ```
-
-### API Implementation Details
-
-The API is implemented in `products/views.py` using Django REST Framework's `ModelViewSet`. Key features include:
-
-#### Error Handling
-- Comprehensive try-catch blocks for all operations
-- Standardized error responses
-- Proper HTTP status codes
-
-#### Rate Limiting
-- Anonymous users: 100 requests per minute
-- Rate limit headers included in responses
-
-#### Pagination
-- Default page size: 10 items
-- Maximum page size: 100 items
-- Configurable via `page_size` query parameter
 
 ## Development
 
@@ -151,44 +152,105 @@ The API is implemented in `products/views.py` using Django REST Framework's `Mod
 python manage.py test
 ```
 
-## CI/CD
+### Code Style
+- Follow PEP 8 guidelines
+- Include docstrings for all functions
+- Write unit tests for new features
+- Maintain consistent error handling
+- Update documentation for API changes
 
-The project uses GitHub Actions for:
-- Running tests on Python 3.9, 3.10, and 3.11
-- Code linting
-- Security checks
-- Automated deployment (when configured)
+## Security Features
 
-## Security
-
-- CORS configuration required for frontend access
+- CORS configuration with whitelisted origins
 - Rate limiting enabled
 - Environment variables for sensitive data
+- Debug mode disabled in production
 - Security middleware enabled
+- HTTPS recommended for production
 
-## Environment Variables
+## Deployment
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| DJANGO_SECRET_KEY | Django secret key | Required |
-| DJANGO_DEBUG | Debug mode | False |
-| DJANGO_ALLOWED_HOSTS | Allowed hosts | Required |
-| CORS_ALLOWED_ORIGINS | CORS origins | Required |
+### Railway Deployment
+
+The application is deployed on Railway. To deploy your own instance:
+
+1. Fork the repository from [https://github.com/MIYUPPIE/simple_product](https://github.com/MIYUPPIE/simple_product)
+
+2. Create a Railway account at [railway.app](https://railway.app)
+
+3. Create a new project in Railway and connect your GitHub repository
+
+4. Add the following environment variables in Railway:
+   - `DJANGO_SECRET_KEY`
+   - `DJANGO_DEBUG=False`
+   - `DJANGO_ALLOWED_HOSTS=.up.railway.app`
+   - `CORS_ALLOWED_ORIGINS`
+   - `PORT=8000`
+
+5. Add the following build command in Railway:
+```bash
+pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+```
+
+6. Set the start command:
+```bash
+gunicorn business_api.wsgi:application --workers 2
+```
+
+7. Railway will automatically deploy your application and provide a URL
+
+### Local Deployment
+
+The application is configured for deployment with:
+- Gunicorn as the WSGI server
+- Whitenoise for static files
+- Environment-based configuration
+- Worker process management
+
+### Production Configuration
+
+Current production deployment:
+- Platform: Railway
+- Domain: simpleproduct-production.up.railway.app
+- HTTPS: Enabled by default
+- Static files: Served via Whitenoise
+- Database: SQLite (consider upgrading to PostgreSQL for production)
+
+## CI/CD
+
+GitHub Actions workflow includes:
+- Automated testing on Python 3.12
+- Code linting and style checks
+- Security vulnerability scanning
+- Deployment automation (when configured)
 
 ## Project Structure
 
 ```
 business-api/
 ├── business_api/        # Project configuration
+│   ├── settings.py     # Django settings
+│   ├── urls.py         # Main URL routing
+│   └── wsgi.py         # WSGI configuration
 ├── products/           # Products app
-│   ├── views.py       # API views and logic
-│   ├── models.py      # Product model
-│   ├── serializers.py # API serializers
-│   └── urls.py        # API routing
+│   ├── views.py       # API views
+│   ├── models.py      # Data models
+│   ├── serializers.py # DRF serializers
+│   └── urls.py        # API endpoints
 ├── .env               # Environment variables
 ├── .env.example       # Environment template
-└── manage.py          # Django management
+├── requirements.txt   # Python dependencies
+├── Procfile          # Deployment configuration
+└── manage.py         # Django management
+```
 
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
