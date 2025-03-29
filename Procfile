@@ -1,1 +1,1 @@
-web: gunicorn paymentEndpoint.wsgi:application --workers 2
+web: gunicorn business_api.wsgi:application --workers 2
